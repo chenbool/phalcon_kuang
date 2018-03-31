@@ -1,0 +1,44 @@
+﻿.page-title {
+	/*padding: 10px 10px;*/
+	background: #e9edf2;
+	border-bottom: 1px solid #dee2e8
+	border:none;
+}
+
+.page-title h3 {
+	font-size: 24px;
+	font-weight: 300;
+	color: #74767d;
+	padding: 0;
+	margin: 0 0 4px
+}
+
+.page-breadcrumb ol.breadcrumb li a,.page-breadcrumb ol.breadcrumb li.active,.page-breadcrumb ul li a {
+	font-size: 13px;
+	color: #90999c
+}
+
+.page-breadcrumb .breadcrumb {
+	float: left;
+	background: 0 0;
+	padding: 5px;
+	margin-top: 10px
+}
+
+.page-breadcrumb ol.breadcrumb,.page-breadcrumb ul {
+	margin: 0
+}
+
+.page-breadcrumb ul li {
+	float: left;
+	display: inline
+}
+
+.page-footer {
+	background: #fff;
+	width: 100%;
+	display: block;
+	position: absolute;
+	bottom: 0;
+	padding: 19px 25px
+}
