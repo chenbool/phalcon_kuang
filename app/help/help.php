@@ -1,5 +1,15 @@
 <?php
+/**
+ * 辅助函数库
+ * 提供调试、系统信息、配置读取等通用工具函数
+ */
 
+/**
+ * 调试打印函数
+ * 以格式化方式输出变量的结构信息
+ * @param mixed $arg 要打印的变量
+ * @return bool 始终返回 false
+ */
 function dump($arg){
     echo '<div style="border:1px solid #ccc;background:#FAFAFA;padding:5px 15px;z-index:1000;margin:5px;"> <pre>';
     var_dump($arg);
@@ -7,6 +17,12 @@ function dump($arg){
     return false;
 }
 
+/**
+ * 调试打印并终止函数
+ * 以格式化方式输出变量的结构信息并终止程序执行
+ * @param mixed $arg 要打印的变量
+ * @return bool 永不返回
+ */
 function dd($arg){
     echo '<div style="border:1px solid #ccc;background:#FAFAFA;padding:5px 15px;z-index:1000;margin:5px;"> <pre>';
     var_dump($arg);
@@ -14,27 +30,36 @@ function dd($arg){
     return false;
 }
 
-
+/**
+ * 获取当前主机地址
+ * 获取当前请求的完整主机名，包含协议和域名
+ * @return string 主机地址，格式如：http://localhost
+ */
 function getHost(){
     return 'http://'.$_SERVER['HTTP_HOST'];
 }
 
-
-//获取硬盘状态
+/**
+ * 获取硬盘空间信息
+ * 获取指定分区的磁盘可用和总空间
+ * @param string $type 文件系统类型，'linux' 或 'windows'
+ * @return array 包含 free(可用空间)、total(总空间)、progress(使用百分比)的数组
+ */
 function disk($type='linux'){
     
         if( $type == 'linux' ){
-            // $df 包含根目录下可用的字节数
+            // Linux 系统获取根目录磁盘空间
             $free 	= disk_free_space("/");
             $total 	= disk_total_space("/");		
         }else{
-            //在 Windows 下:
+            // Windows 系统获取 C 盘磁盘空间
             $free 	= disk_free_space("C:");
             $total 	= disk_total_space("C:");		
         }
     
         dump( $free );
 
+        // 转换为 GB 单位
         $free /= 1024*1024*1024;
         $total /= 1024*1024*1024;
     
@@ -50,11 +75,14 @@ function disk($type='linux'){
         ];
     }
     
-    //linux系统探测
-    
+/**
+ * Linux 系统信息探测
+ * 获取 Linux 服务器的 CPU、内存、运行时间、负载等系统信息
+ * @return array|false 成功返回系统信息数组，失败返回 false
+ */
     function sys_linux(){
     
-        // CPU
+        // 获取 CPU 信息
         if (false === ($str = @file("/proc/cpuinfo"))) return false;
     
         $str = implode("", $str);
@@ -94,10 +122,8 @@ function disk($type='linux'){
         }
     
     
-        // NETWORK
-    
-        // UPTIME
-    
+        // 获取网络信息
+        // 获取运行时间
         if (false === ($str = @file("/proc/uptime"))) return false;
     
         $str = explode(" ", implode("", $str));
@@ -121,8 +147,7 @@ function disk($type='linux'){
         $res['uptime'] .= $min."分钟";
     
     
-        // MEMORY
-    
+        // 获取内存信息
         if (false === ($str = @file("/proc/meminfo"))) return false;
     
         $str = implode("", $str);
@@ -159,8 +184,7 @@ function disk($type='linux'){
         $res['swapPercent'] = (floatval($res['swapTotal'])!=0)?round($res['swapUsed']/$res['swapTotal']*100,2):0;
     
     
-        // LOAD AVG
-    
+        // 获取系统负载信息
         if (false === ($str = @file("/proc/loadavg"))) return false;
     
         $str = explode(" ", implode("", $str));
@@ -174,7 +198,12 @@ function disk($type='linux'){
     }
     
 
-//转换文件大小
+/**
+ * 转换文件大小单位
+ * 将字节数转换为人类可读的单位格式
+ * @param int $size 字节大小
+ * @return string 转换后的大小字符串，如 1.5MB
+ */
 function transByte($size){
     $arr=array('B','KB','MB','GB','TB','EB');
     $i=0;
@@ -185,7 +214,13 @@ function transByte($size){
     return round($size,2).$arr[$i];
 }
 
-//获取配置
+/**
+ * 获取配置信息
+ * 读取指定配置文件并返回配置对象或特定配置项
+ * @param string $file 配置文件名（不含 .php 后缀）
+ * @param string|null $arg 配置项键名，为空时返回整个配置对象
+ * @return mixed 配置对象或指定配置项的值
+ */
 function config($file = 'config',$arg=null){
     $config  = new \Phalcon\Config\Adapter\Php(ROOT_PATH . '/app/config/'.$file.'.php'); 
 

@@ -1,36 +1,55 @@
 <?php
 namespace App\Frontend\Repositories;
+
 use App\Frontend\Models\User;
 use App\Frontend\Validations\LoginValidation;
 use App\Library\Encrypt;
 
+/**
+ * 登录数据仓储
+ * 处理用户注册、登录、注销等业务逻辑
+ */
 class LoginRepository extends BaseRepository
 {
-
+    /**
+     * Session 对象
+     * @var mixed
+     */
     public $session;
+    
+    /**
+     * 构造函数
+     * @param mixed $session Session 实例
+     */
     function __construct($session){
         parent::__construct();
         $this->session = $session;
     }    
 
-    //注册
+    /**
+     * 用户注册
+     * 验证验证码并创建新用户
+     * @param array $data 用户注册数据
+     * @return array 注册结果
+     */
     public function register($data){ 
 
-        //检测验证码
+        // 检测验证码
         if( $this->session->has('phone_code') ){
            if( $this->session->get('phone_code') !=  $data['code'] ){
                 return [ 
                     'status'    =>  100,
-                    'info'      => ['验证码不对'] 
+                    'info'      => ['验证码不对']
                 ];
            }
            exit();   
         }
                 
-
+        // 验证数据
         $error = $this->validate($data);
 
         if( $error['status'] == 0 ){
+            // 创建新用户
             $user = new User();
             $user->username  = Encrypt::encode( $data['phone'] );
             $user->password  = md5( $data['password'] );
@@ -49,7 +68,7 @@ class LoginRepository extends BaseRepository
                     echo $message, "<br>";
                 }
             } else {
-                //清空Session
+                // 清空 Session
                 $this->session->remove("phone_code");
                 return [
                     'status'    =>  0,
@@ -63,7 +82,12 @@ class LoginRepository extends BaseRepository
 
     }    
 
-    //登录
+    /**
+     * 用户登录
+     * 验证用户凭据并创建会话
+     * @param array $data 登录数据
+     * @return array 登录结果
+     */
     public function login($data){ 
     
         if( empty($data['phone']) || empty($data['password']) ){
@@ -71,12 +95,12 @@ class LoginRepository extends BaseRepository
             exit;
         }
 
-        //查找用户
+        // 查找用户
         $res = User::findFirstByPhone( Encrypt::encode($data['phone']) );
         if( $res ){
-            //检测密码
+            // 检测密码
             if( $res->password == md5($data['password']) ){
-                //登录成功
+                // 登录成功，设置 Session
                 // dump( $res->password );
                 $this->session->set('user_id',$res->id);
                 $this->session->set('user_name',$res->username);
@@ -91,55 +115,15 @@ class LoginRepository extends BaseRepository
 
     }  
 
-    //注销
+    /**
+     * 用户注销
+     * 清除用户会话
+     * @return bool 成功返回 true
+     */
     public function quit(){
         $this->session->remove('user_id');
         $this->session->remove('user_name');
         $this->session->remove('user_phone');
         return true;
     }
-
-
-    // *****************验证器調用********************************************
-    public function validate($data,$type = 'add'){
-        //验证
-        $validation = new LoginValidation();
-        $messages = $validation->validate($data);
-        
-        //记录错误信息
-        $error = [];    
-        if (count($messages)) {
-            $error[] = $messages[0]->getMessage();
-        }  
-
-        if( $type == 'add' ){
-            if( User::findFirstByPhone( Encrypt::encode($data['phone'])  ) ){
-                $error[] = '用户已经存在';
-            }
-
-            if( User::findFirstByUsername( Encrypt::encode($data['phone'])  ) ){
-                $error[] = '用户已经存在';
-            }
-        }
-
-        if( $data['password'] != $data['c_password'] ){
-            $error[] = '两次密码不一致';
-        }
-
-        //返回
-        if( count( $error ) ){
-            return [
-                'status'    =>  100,
-                'info'      => $error
-            ];
-        }else{
-            return [
-                'status'    =>  0,
-                'info'      => ['添加成功']
-            ];                     
-        } 
-
-    }
-
-
 }
